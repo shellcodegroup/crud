@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:frontend/item.dart';
@@ -15,7 +16,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      debugShowCheckedModeBanner: false,
+      title: 'CRUD',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
@@ -33,11 +35,15 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final String serverUrl = 'http://localhost:3000';
+  final String serverUrlIos = 'http://localhost:3000';
+  final String serverUrlAndroid = 'http://10.0.2.2:3000';
+
   final TextEditingController nameController = TextEditingController();
 
   Future<List<dynamic>> fetchItems() async {
-    final response = await http.get(Uri.parse('$serverUrl/api/v1/items'));
+    final response = Platform.isAndroid
+        ? await http.get(Uri.parse('$serverUrlAndroid/api/v1/items'))
+        : await http.get(Uri.parse('$serverUrlIos/api/v1/items'));
 
     if (response.statusCode == 200) {
       final itemList = jsonDecode(response.body);
@@ -52,7 +58,9 @@ class _HomeState extends State<Home> {
 
   Future<Item> addItem(String name) async {
     final response = await http.post(
-      Uri.parse('$serverUrl/api/v1/items'),
+      Platform.isAndroid
+          ? Uri.parse('$serverUrlAndroid/api/v1/items')
+          : Uri.parse('$serverUrlIos/api/v1/items'),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -69,7 +77,10 @@ class _HomeState extends State<Home> {
   }
 
   Future<void> updateItem(int id, String name) async {
-    final response = await http.put(Uri.parse('$serverUrl/api/v1/items/$id'),
+    final response = await http.put(
+        Platform.isAndroid
+            ? Uri.parse('$serverUrlAndroid/api/v1/items/$id')
+            : Uri.parse('$serverUrlIos/api/v1/items/$id'),
         headers: {
           'Content-Type': 'application/json',
         },
@@ -82,7 +93,9 @@ class _HomeState extends State<Home> {
 
   Future<void> deleteItem(int id) async {
     final response = await http.delete(
-      Uri.parse('$serverUrl/api/v1/items/$id'),
+      Platform.isAndroid
+          ? Uri.parse('$serverUrlAndroid/api/v1/items/$id')
+          : Uri.parse('$serverUrlIos/api/v1/items/$id'),
     );
 
     if (response.statusCode != 200) {

@@ -5,18 +5,15 @@ const app = express();
 
 const port = 3000;
 
-
 //middleware configuration
 app.use(express.json());
 
 // define item list
-
 let itemList = [
     { id: 1, name: "Name Here" },
 ];
 
 //api routes
-//CRUD operations
 app.get('/api/v1/items', (req, res) => {
     return res.json(itemList);
 });
@@ -58,6 +55,6 @@ app.delete('/api/v1/items/:id', (req, res) => {
 });
 
 //listners
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
     console.log(`listening on port ${port}`)
 })
