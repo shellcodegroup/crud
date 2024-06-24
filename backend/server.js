@@ -9,15 +9,27 @@ const port = 3000;
 app.use(express.json());
 
 // define item list
-let itemList = [
+const itemList = [
     { id: 1, name: "Name Here" },
 ];
 
+function auth(req, res, next) {
+
+    const userId = req.headers['x-user-id']
+
+    if (!userId || userId !== "123") {
+        return res.status(401).json({ message: "unauthorized" })
+    }
+    req.user = { name: "Tosh", id: userId }
+    next()
+}
+
 //api routes
-app.get('/api/v1/items', (req, res) => {
+app.get('/api/v1/items', auth, (req, res) => {
+    console.log(req.user)
     return res.json(itemList);
 });
-app.post('/api/v1/items', (req, res) => {
+app.post('/api/v1/items', auth, (req, res) => {
     let newItem = {
         id: itemList.length + 1,
         name: req.body.name,
