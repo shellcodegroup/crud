@@ -42,8 +42,20 @@ class _HomeState extends State<Home> {
 
   Future<List<dynamic>> fetchItems() async {
     final response = Platform.isAndroid
-        ? await http.get(Uri.parse('$serverUrlAndroid/api/v1/items'))
-        : await http.get(Uri.parse('$serverUrlIos/api/v1/items'));
+        ? await http.get(
+            Uri.parse('$serverUrlAndroid/api/v1/items'),
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': '123',
+            },
+          )
+        : await http.get(
+            Uri.parse('$serverUrlIos/api/v1/items'),
+            headers: {
+              'Content-Type': 'application/json',
+              'x-user-id': '123',
+            },
+          );
 
     if (response.statusCode == 200) {
       final itemList = jsonDecode(response.body);
@@ -63,6 +75,7 @@ class _HomeState extends State<Home> {
           : Uri.parse('$serverUrlIos/api/v1/items'),
       headers: {
         'Content-Type': 'application/json',
+        'x-user-id': '123',
       },
       body: jsonEncode({'name': name}),
     );
@@ -83,6 +96,7 @@ class _HomeState extends State<Home> {
             : Uri.parse('$serverUrlIos/api/v1/items/$id'),
         headers: {
           'Content-Type': 'application/json',
+          'x-user-id': '123',
         },
         body: jsonEncode({'name': name}));
 
@@ -96,6 +110,10 @@ class _HomeState extends State<Home> {
       Platform.isAndroid
           ? Uri.parse('$serverUrlAndroid/api/v1/items/$id')
           : Uri.parse('$serverUrlIos/api/v1/items/$id'),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': '123',
+      },
     );
 
     if (response.statusCode != 200) {
@@ -107,80 +125,87 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-          child: Column(
-        children: [
-          FutureBuilder(
-              future: fetchItems(),
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  return ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: snapshot.data!.length,
-                      itemBuilder: (context, index) {
-                        final item = snapshot.data![index];
-                        return ListTile(
-                          title: Text(item.name),
-                          trailing: SizedBox(
-                            width: 100,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                IconButton(
-                                    onPressed: () {
-                                      deleteItem(item.id);
-                                      setState(() {});
-                                    },
-                                    icon: const Icon(Icons.delete)),
-                                IconButton(
-                                    onPressed: () {
-                                      showDialog(
-                                          context: context,
-                                          builder: (context) {
-                                            return AlertDialog(
-                                              title: const Text("Update Item"),
-                                              content: TextFormField(
-                                                controller: nameController,
-                                                decoration:
-                                                    const InputDecoration(
-                                                        labelText: 'Item Name'),
-                                              ),
-                                              actions: [
-                                                TextButton(
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                    },
-                                                    child:
-                                                        const Text('Cancel')),
-                                                TextButton(
-                                                    onPressed: () {
-                                                      Navigator.pop(context);
-                                                      updateItem(item.id,
-                                                          nameController.text);
-                                                      setState(() {
-                                                        nameController.clear();
-                                                      });
-                                                    },
-                                                    child: const Text(
-                                                        'Update Item')),
-                                              ],
-                                            );
-                                          });
-                                    },
-                                    icon: const Icon(Icons.edit)),
-                              ],
+          child: SingleChildScrollView(
+        child: Column(
+          children: [
+            FutureBuilder(
+                future: fetchItems(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          final item = snapshot.data![index];
+                          return ListTile(
+                            title: Text(item.name),
+                            trailing: SizedBox(
+                              width: 100,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  IconButton(
+                                      onPressed: () {
+                                        deleteItem(item.id);
+                                        setState(() {});
+                                      },
+                                      icon: const Icon(Icons.delete)),
+                                  IconButton(
+                                      onPressed: () {
+                                        showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title:
+                                                    const Text("Update Item"),
+                                                content: TextFormField(
+                                                  controller: nameController,
+                                                  decoration:
+                                                      const InputDecoration(
+                                                          labelText:
+                                                              'Item Name'),
+                                                ),
+                                                actions: [
+                                                  TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                      },
+                                                      child:
+                                                          const Text('Cancel')),
+                                                  TextButton(
+                                                      onPressed: () {
+                                                        Navigator.pop(context);
+                                                        updateItem(
+                                                            item.id,
+                                                            nameController
+                                                                .text);
+                                                        setState(() {
+                                                          nameController
+                                                              .clear();
+                                                        });
+                                                      },
+                                                      child: const Text(
+                                                          'Update Item')),
+                                                ],
+                                              );
+                                            });
+                                      },
+                                      icon: const Icon(Icons.edit)),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      });
-                } else if (snapshot.hasError) {
-                  return Center(child: Text(snapshot.error.toString()));
-                } else {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-              })
-        ],
+                          );
+                        });
+                  } else if (snapshot.hasError) {
+                    return Center(child: Text(snapshot.error.toString()));
+                  } else {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                })
+          ],
+        ),
       )),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
